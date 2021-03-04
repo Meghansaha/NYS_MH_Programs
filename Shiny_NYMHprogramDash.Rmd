@@ -1,0 +1,172 @@
+---
+title: "New York State's (Brooklyn,NY) Local Mental Health Programs"
+output:
+  flexdashboard::flex_dashboard:
+    vertical_layout: fill
+    source_code: embed
+    css: scripts/nycmhstyle.css
+runtime: shiny
+    
+---
+
+```{r setup, include=FALSE}
+
+
+#Library load in.#
+library(flexdashboard)
+library(knitr)
+library(purrr)
+library(readr)
+library(tidyverse)
+library(leaflet)
+library(leafem)
+library(crosstalk)
+library(DT)
+library(summarywidget)
+library(raster)
+
+#Loading the datasets into the environment.#
+#MH programs with geocodes#
+
+MHprograms <- readRDS("data/mhprogramsnyc.RDS")
+
+
+#Converting data frames into shared data objects with crosstalk. This will allow the map, filters, and tables to be interactive and dynamic.#
+Sharedgeodata <- SharedData$new(MHprograms)
+
+
+```
+
+Column {data-width=550}
+-----------------------------------------------------------------------
+
+### 
+
+```{r map}
+
+#Pulling a "Home" icon I've hosted on the internet===
+Homeimg <- htmltools::HTML(paste("<img src='https://i.ibb.co/D8tSw9q/Homebutton.png' width = '15', height '15', title = 'Home'>"))
+
+#Naming the home image for the addhomebutton function in the leaflet map===
+Home <- list("Home" = Homeimg)
+
+#Generating a bounding box of the entire data set. This will act as our "homebase" to zoom back to when the home button is clicked on===
+homebase <- ggmap::make_bbox(lon, lat, data = MHprograms)
+
+# Retrieving the center point for the map data to set the "home" view===
+coordinates(MHprograms) <- ~lon+lat
+proj4string(MHprograms) <- "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs"
+mapcenter <- coordinates(as(extent(MHprograms), "SpatialPolygons"))
+
+#Creating the leaflet map from the shared geo data object===
+Sharedgeodata %>%
+  leaflet() %>%
+  addProviderTiles(providers$OpenStreetMap) %>%
+  addAwesomeMarkers(
+    popup = ~paste0(
+      "<b><h3>",MHprograms$`Agency Name`, "</h3></b><br>",
+      "<h4>",MHprograms$`Program Name`,"</h4><br>",
+      "Phone: ",MHprograms$`Agency Phone`, "<br>",
+      MHprograms$`Program Address 1`, "<br>",
+      MHprograms$City, MHprograms$`Program State`, MHprograms$`Program Zip`),
+    icon = awesomeIcons(
+      library = "fa",
+      icon = ifelse(
+        test = MHprograms$`Program Category Description` == "Outpatient", 
+        yes = "fa-stethoscope",
+        no = ifelse(
+        test = MHprograms$`Program Category Description` == "Inpatient", 
+        yes =  "fa-bed",
+        no = ifelse(
+        test = MHprograms$`Program Category Description` == "Emergency", 
+        yes = "fa-ambulance",
+        no = "fa-users"
+      ))),
+      iconColor = "#ffffff",
+      markerColor = "darkpurple")) %>%
+  addHomeButton(ext = homebase, 
+                group = Home,
+                position = "topright",
+                add = TRUE) %>%
+  setView(lng = mapcenter[1] , lat = mapcenter[2], zoom = 12)
+  
+```
+
+Column {data-width=450}
+-----------------------------------------------------------------------
+
+### **Total Locations Found:** {data-height=70}
+<center><h4><font color="#593869"><b>`r summarywidget(Sharedgeodata, statistic='count', digits=0)`</b></font></h4></center>
+
+### **Program Information:** {data-height=200}
+```{r datatable}
+Sharedgeodata %>% 
+  DT::datatable(
+    extensions = c("Scroller"),
+    rownames = FALSE,  
+    style = "bootstrap",
+    class = "compact",
+    selection = list(mode = "multiple"),
+    options = list(
+      dom = "Btip", 
+      deferRender = TRUE,
+      scroller = FALSE,
+      fillContainer = TRUE,
+      columnDefs = list(
+        list(width = '50%',
+          visible = FALSE,
+          targets = c(0,4:13,15:16))),
+    colnames = c(
+      "Location Name" = "Program Name",
+      "Ages Served" = "Populations Served",
+      "Phone Number" = "Program Phone",
+      "Address" = "Complete Address"
+      ))) 
+```
+
+### **Map Filters:**
+<center>
+```{r mapfilters}
+
+  filter_checkbox(
+    id = "Program Category Description",
+    label = "Program Type",
+    sharedData = Sharedgeodata,
+    group = ~`Program Category Description`,
+    allLevels = FALSE,
+    inline = TRUE
+  )
+
+```
+</center>
+```{r mapfilters2}
+
+  filter_select(
+    id = "Program Subcategory Description",
+    label = "Program Setting",
+    sharedData = Sharedgeodata,
+    group = ~`Program Subcategory Description`,
+    allLevels = FALSE,
+    multiple = TRUE
+  )
+
+```
+```{r mapfilters3}
+
+  filter_select(
+    id = "Populations Served",
+    label = "Ages Served",
+    sharedData = Sharedgeodata,
+    group = ~`Populations Served`,
+    allLevels = FALSE,
+    multiple = TRUE
+  )
+
+```
+
+<br>
+<br>
+<br>
+Data provided by the <b><a href = "https://omh.ny.gov/">New York State Office of Mental Health</a></b> and found publicly on <b><a href = "https://data.ny.gov/Human-Services/Local-Mental-Health-Programs/6nvr-tbv8">DATA.NY.GOV</a></b>
+<br>
+Example created by <b><a href = "https://twitter.com/meghansharris"> Meghan Harris</a></b> with the <b><a href="https://rmarkdown.rstudio.com/flexdashboard/">flexdashboard</a></b>, <b><a href= https://rstudio.github.io/crosstalk/"> Crosstalk</a></b>, <b><a href="https://kent37.github.io/summarywidget/index.html"> SummaryWidget</a></b>, and <b><a href ="https://rstudio.github.io/DT/">DT</a></b> packages. 
