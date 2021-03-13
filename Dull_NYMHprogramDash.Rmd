@@ -83,8 +83,7 @@ Sharedgeodata %>%
       markerColor = "darkpurple")) %>%
   addHomeButton(ext = homebase, 
                 group = Home,
-                position = "topright",
-                add = TRUE) %>%
+                position = "topright") %>%
   setView(lng = mapcenter[1] , lat = mapcenter[2], zoom = 12)
   
 ```
@@ -99,16 +98,12 @@ Column {data-width=450}
 ```{r datatable}
 Sharedgeodata %>% 
   DT::datatable(
-    extensions = c("Scroller"),
     rownames = FALSE,  
     style = "bootstrap",
     class = "compact",
-    selection = list(mode = "multiple"),
+    selection = "multiple",
     options = list(
-      dom = "Btip", 
-      deferRender = TRUE,
-      scroller = FALSE,
-      fillContainer = TRUE,
+      dom = "tip", 
       columnDefs = list(
         list(width = '50%',
           visible = FALSE,
@@ -130,12 +125,12 @@ Sharedgeodata %>%
     label = "Program Type",
     sharedData = Sharedgeodata,
     group = ~`Program Category Description`,
-    allLevels = FALSE,
     inline = TRUE
   )
 
 ```
 </center>
+
 ```{r mapfilters2}
 
   filter_select(
@@ -143,7 +138,6 @@ Sharedgeodata %>%
     label = "Program Setting",
     sharedData = Sharedgeodata,
     group = ~`Program Subcategory Description`,
-    allLevels = FALSE,
     multiple = TRUE
   )
 
@@ -155,8 +149,7 @@ Sharedgeodata %>%
     label = "Ages Served",
     sharedData = Sharedgeodata,
     group = ~`Populations Served`,
-    allLevels = FALSE,
-    multiple = TRUE
+    multiple = FALSE
   )
 
 ```
@@ -164,6 +157,13 @@ Sharedgeodata %>%
 <br>
 <br>
 <br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
 Data provided by the <b><a href = "https://omh.ny.gov/">New York State Office of Mental Health</a></b> and found publicly on <b><a href = "https://data.ny.gov/Human-Services/Local-Mental-Health-Programs/6nvr-tbv8">DATA.NY.GOV</a></b>
 <br>
 Example created by <b><a href = "https://twitter.com/meghansharris"> Meghan Harris</a></b> with the <b><a href="https://rmarkdown.rstudio.com/flexdashboard/">flexdashboard</a></b>, <b><a href= https://rstudio.github.io/crosstalk/"> Crosstalk</a></b>, <b><a href="https://kent37.github.io/summarywidget/index.html"> SummaryWidget</a></b>, and <b><a href ="https://rstudio.github.io/DT/">DT</a></b> packages. 
+

@@ -1,3 +1,5 @@
+/* CSS Template for flexdashboards */
+
 body {
   background: #ccc8ba;
   padding: 60px 0 0 8px;
@@ -26,7 +28,7 @@ body {
 .navbar-inverse .navbar-nav > li > a:focus {
   color: #ffffff;
   background-color: #333333;
-}
+} 
 .navbar-inverse .navbar-nav > .active > a,
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
